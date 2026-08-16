@@ -241,6 +241,34 @@ No parameters.
 
 **Returns:** Comma-separated list of exchange ids.
 
+### Synthetic series (`skills/synthetic_series`)
+
+#### `generate_synthetic_stock_series_garch_arch`
+
+Generates N synthetic stock price time series using a GARCH(1,1) model
+(`arch` package). Useful to simulate plausible future price paths or to
+stress-test strategies against synthetic scenarios.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `ticker` | `str` | — | Ticker symbol (e.g. `PETR4`). |
+| `start_date` | `str` | — | Start date, format `YYYY-MM-DD`. |
+| `n_days` | `int` | — | Number of business days to generate from `start_date`. |
+| `value_type` | `str` | `"close"` | OHLC field to return: `open`, `high`, `low` or `close`. |
+| `n_series` | `int` | `1` | Number of independent synthetic series to generate. |
+| `mode` | `str` | `"simulate"` | `"simulate"` uses the informed `mu`/`omega`/`alpha`/`beta`; `"fit_and_simulate"` estimates them via MLE from `historical_returns`. |
+| `initial_price` | `float` | `100.0` | Starting price for each series. |
+| `mu` | `float` | `0.0` | Mean return (used in `simulate` mode). |
+| `omega` | `float` | `0.02` | GARCH constant term (used in `simulate` mode). |
+| `alpha` | `float` | `0.10` | GARCH ARCH term (used in `simulate` mode); `alpha + beta` must be `< 1`. |
+| `beta` | `float` | `0.85` | GARCH GARCH term (used in `simulate` mode). |
+| `historical_returns` | `list[float]` | — | Real daily fractional returns, required in `fit_and_simulate` mode (at least 30 observations). |
+| `seed` | `int` | — | Random seed for reproducibility. |
+
+**Returns:** JSON string shaped as `{"serie_1": [values...], ...,
+"serie_n": [values...]}`, where each list holds `n_days` values of the
+chosen `value_type`.
+
 ## Error handling
 
 Tools generally do not raise exceptions across the MCP boundary; instead

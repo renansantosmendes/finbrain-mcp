@@ -58,6 +58,7 @@ vercel.json            -> configuração de deploy serverless na Vercel
 | Macroeconomia Brasil | `skills/macro_brasil` | Séries do Banco Central (SGS), PTAX e expectativas de mercado (Boletim Focus) |
 | Macroeconomia global | `skills/macro_global` | Indicadores do Banco Mundial, busca de indicadores e comparação entre países |
 | Criptomoedas | `skills/cripto` | Preço, candles (OHLCV) e order book via `ccxt`, em múltiplas exchanges |
+| Séries sintéticas | `skills/synthetic_series` | Gera N séries temporais sintéticas de preços via modelo GARCH(1,1) (`arch`) |
 
 Cada skill expõe uma ou mais *tools* MCP. A lista completa de tools, seus
 parâmetros e formatos de retorno está documentada em inglês em
@@ -127,6 +128,13 @@ e lista as tools disponíveis:
 ```bash
 python list_mcp_tools.py                                   # usa o deploy de produção
 python list_mcp_tools.py http://localhost:8000/mcp          # usa o servidor local
+```
+
+Testes unitários (`pytest`) cobrem as skills que possuem lógica própria além
+de chamadas diretas a APIs externas, como `skills/synthetic_series`:
+
+```bash
+python -m pytest tests/
 ```
 
 ## Convenções de código
