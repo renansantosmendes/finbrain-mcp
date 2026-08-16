@@ -103,8 +103,15 @@ O projeto está preparado para deploy serverless na **Vercel**:
 
 - `api/index.py` importa a app FastAPI de `mcp_server.py` e a expõe como
   função serverless.
-- `vercel.json` redireciona todas as rotas (`/(.*)`) para `api/index.py` e
-  define `maxDuration: 30` segundos para a função.
+- A Vercel detecta automaticamente a app FastAPI (zero-config) e roteia
+  todas as rotas para ela — **não** use `rewrites` no `vercel.json` para
+  isso: em projetos com framework de backend detectado, a Vercel passa o
+  path de destino do rewrite como o path interno da requisição, então um
+  rewrite `"/(.*)" -> "/api/index"` faz toda rota chegar na app como
+  `/api/index`, quebrando o roteamento (foi a causa de um 404 em produção
+  em todas as rotas, inclusive `/mcp`).
+- `vercel.json` só define `maxDuration: 30` segundos para a função
+  (`functions["api/index.py"]`).
 - Caches que normalmente seriam escritos no diretório do usuário
   (`wbdata`, `yfinance`) são redirecionados para `/tmp`, único diretório
   gravável em runtimes serverless como a Vercel.
@@ -134,8 +141,12 @@ Testes unitários (`pytest`) cobrem as skills que possuem lógica própria além
 de chamadas diretas a APIs externas, como `skills/synthetic_series`:
 
 ```bash
+pip install -r requirements-dev.txt   # instala requirements.txt + pytest
 python -m pytest tests/
 ```
+
+`pytest` fica isolado em `requirements-dev.txt` (não vai para o deploy da
+Vercel, que usa apenas `requirements.txt`).
 
 ## Convenções de código
 
