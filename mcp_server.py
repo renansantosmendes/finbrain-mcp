@@ -14,8 +14,11 @@ load_dotenv()
 import functools
 from contextlib import asynccontextmanager
 
+import html
+
 import yfinance as yf
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from langfuse import get_client, observe
 from mcp.server.fastmcp import FastMCP
 
@@ -83,7 +86,71 @@ async def lifespan(app: FastAPI):
         yield
 
 
+def _render_param_row(param_name: str, schema: dict) -> str:
+    param_type = schema.get("type") or " | ".join(
+        option.get("type", "any") for option in schema.get("anyOf", [])
+    ) or "any"
+    required = "default" not in schema
+    default = "" if required else html.escape(repr(schema["default"]))
+    return (
+        "<tr>"
+        f"<td><code>{html.escape(param_name)}</code></td>"
+        f"<td><code>{html.escape(param_type)}</code></td>"
+        f"<td>{'required' if required else default}</td>"
+        "</tr>"
+    )
+
+
+def _render_tool_section(tool) -> str:
+    param_rows = "\n".join(_render_param_row(name, schema) for name, schema in tool.args.items())
+    params_table = (
+        f"<table><thead><tr><th>Parameter</th><th>Type</th><th>Default</th></tr></thead>"
+        f"<tbody>{param_rows}</tbody></table>"
+        if param_rows
+        else "<p><em>No parameters.</em></p>"
+    )
+    return (
+        "<section>"
+        f"<h3><code>{html.escape(tool.name)}</code></h3>"
+        f"<p>{html.escape(tool.description)}</p>"
+        f"{params_table}"
+        "</section>"
+    )
+
+
+def _render_status_page() -> str:
+    tool_sections = "\n".join(_render_tool_section(tool) for tool in LANGCHAIN_TOOLS)
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FinBrain MCP</title>
+<style>
+body {{ font-family: system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }}
+code {{ background: #f2f2f2; padding: 0.1rem 0.35rem; border-radius: 4px; }}
+section {{ border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; }}
+table {{ width: 100%; border-collapse: collapse; margin-top: 0.5rem; }}
+th, td {{ text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid #eee; font-size: 0.9rem; }}
+</style>
+</head>
+<body>
+<h1>FinBrain MCP</h1>
+<p>MCP server is running. Endpoint: <code>POST /mcp</code> (Streamable HTTP, JSON-RPC).</p>
+<p>{len(LANGCHAIN_TOOLS)} tools registered:</p>
+{tool_sections}
+</body>
+</html>"""
+
+
 app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/", response_class=HTMLResponse)
+def status_page() -> str:
+    """Simple browsable page listing every registered MCP tool, its description and parameters."""
+    return _render_status_page()
+
+
 app.mount("/", mcp_asgi_app)
 
 if __name__ == "__main__":
