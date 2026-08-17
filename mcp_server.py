@@ -20,7 +20,7 @@ import yfinance as yf
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from langfuse import get_client, observe
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 # yfinance's default timezone cache also lives under the user cache dir,
 # which is read-only on serverless runtimes like Vercel.
@@ -35,11 +35,7 @@ from skills.macro_global.tools import get_world_bank_indicator, search_world_ban
 from skills.cripto.tools import get_crypto_price, get_crypto_ohlcv, get_crypto_order_book, list_available_exchanges
 from skills.synthetic_series.tools import generate_synthetic_stock_series_garch_arch
 
-# host="0.0.0.0" (instead of the default "127.0.0.1") stops FastMCP from
-# auto-enabling its localhost-only DNS-rebinding allowlist, which otherwise
-# rejects every request whose Host header isn't 127.0.0.1/localhost — a
-# problem once this runs behind a real domain (Vercel, etc).
-mcp = FastMCP("finbrain", host="0.0.0.0", stateless_http=True)
+mcp = MCPServer("finbrain")
 
 LANGCHAIN_TOOLS = [
     collect_yfinance_data,
@@ -77,7 +73,11 @@ def _with_tracing(func, name: str):
 for langchain_tool in LANGCHAIN_TOOLS:
     mcp.tool(name=langchain_tool.name)(_with_tracing(langchain_tool.func, langchain_tool.name))
 
-mcp_asgi_app = mcp.streamable_http_app()
+# host="0.0.0.0" (instead of the default "127.0.0.1") stops the DNS-rebinding
+# allowlist from rejecting every request whose Host header isn't
+# 127.0.0.1/localhost — a problem once this runs behind a real domain
+# (Vercel, etc).
+mcp_asgi_app = mcp.streamable_http_app(host="0.0.0.0", stateless_http=True)
 
 
 @asynccontextmanager
