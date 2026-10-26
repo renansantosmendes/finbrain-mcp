@@ -57,8 +57,10 @@ vercel.json            -> configuração de deploy serverless na Vercel
 | Comparação de ativos | `skills/asset_comparison` | Compara múltiplos tickers lado a lado |
 | Macroeconomia Brasil | `skills/macro_brasil` | Séries do Banco Central (SGS), PTAX e expectativas de mercado (Boletim Focus) |
 | Macroeconomia global | `skills/macro_global` | Indicadores do Banco Mundial, busca de indicadores e comparação entre países |
-| Criptomoedas | `skills/cripto` | Preço, candles (OHLCV) e order book via `ccxt`, em múltiplas exchanges |
-| Séries sintéticas | `skills/synthetic_series` | Gera N séries temporais sintéticas de preços via modelo GARCH(1,1) (`arch`) |
+| Criptomoedas (desativada) | `skills/cripto` | Preço, candles (OHLCV) e order book via `ccxt`. Código mantido, fora do registro de tools (`mcp_server.py`) e fora do `requirements.txt` |
+| Séries sintéticas (desativada) | `skills/synthetic_series` | Gera N séries temporais sintéticas de preços via modelo GARCH(1,1) (`arch`). Código mantido, fora do registro de tools e fora do `requirements.txt` |
+
+As duas skills desativadas saíram do deploy porque as dependências (`ccxt`, `arch`, com `scipy` e `statsmodels`) estouravam o espaço de instalação do Vercel. Para reativá-las, importe e registre as tools em `LANGCHAIN_TOOLS` no `mcp_server.py` e volte as dependências para o `requirements.txt`. Os testes delas continuam rodando com `requirements-dev.txt`.
 
 Cada skill expõe uma ou mais *tools* MCP. A lista completa de tools, seus
 parâmetros e formatos de retorno está documentada em inglês em

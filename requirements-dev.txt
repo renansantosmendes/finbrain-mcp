@@ -1,2 +1,5 @@
 -r requirements.txt
 pytest==8.4.1
+# Only for the disabled skills (crypto and GARCH), which are not deployed.
+ccxt==4.5.67
+arch==7.2.0
