@@ -192,7 +192,9 @@ countries.
 **Returns:** Plain-text table with the most recent value per country,
 sorted descending.
 
-### Cryptocurrency (`skills/cripto`)
+### Cryptocurrency (`skills/cripto`) — disabled
+
+These tools are not registered in `mcp_server.py` and are not deployed. The code is kept in `skills/cripto`.
 
 #### `get_crypto_price`
 
@@ -241,7 +243,9 @@ No parameters.
 
 **Returns:** Comma-separated list of exchange ids.
 
-### Synthetic series (`skills/synthetic_series`)
+### Synthetic series (`skills/synthetic_series`) — disabled
+
+This tool is not registered in `mcp_server.py` and is not deployed. The code is kept in `skills/synthetic_series`.
 
 #### `generate_synthetic_stock_series_garch_arch`
 
